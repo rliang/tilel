@@ -25,7 +25,7 @@ window.
 
 `M[index]`: Move focused window to index `index`.
 
-`m[index]`: Move focused window `count` indexes relative to the currently
+`m[count]`: Move focused window `count` indexes relative to the currently
 focused window.
 
 Examples
