@@ -1,1 +1,49 @@
-/home/s/.tilel
+#!/bin/sh
+
+# screen width
+sw=$1
+# screen height
+sh=$2
+# window count
+wc=$3
+
+# user-defined constants
+gap=8
+pad=(8 0 8 8)
+layout=1
+
+# base window dimensions
+x=$(( 0 + ${pad[0]} ))
+y=$(( 0 + ${pad[1]} ))
+w=$(( $sw - ${pad[2]} - $x ))
+h=$(( $sh - ${pad[3]} - $y ))
+
+# utility functions
+applygap() {
+	x=$(( $x + $1 ))
+	y=$(( $y + $1 ))
+	w=$(( $w - 2 * $1 ))
+	h=$(( $h - 2 * $1 ))
+}
+
+# layout functions
+vsplit() {
+	[[ $wc != 0 ]] && w=$(( $w / $wc ))
+	for (( i = 0; i < $wc; i++ )); do
+		applygap $gap
+		echo $x $y $w $h
+		applygap $(( -$gap ))
+		x=$(( $x + $w ))
+	done
+}
+monocle() {
+	for (( i = 0; i < $wc; i++ )); do
+		echo $x $y $w $h
+	done
+}
+
+# script
+case $layout in
+	0) monocle ;;
+	*) vsplit ;;
+esac
