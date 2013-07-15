@@ -498,17 +498,14 @@ void setup()
 
 void event_interpret(xcb_atom_t a)
 {
-	bool update = true;
-
 	if (a == ewmh._NET_CLIENT_LIST || a == ewmh._NET_CURRENT_DESKTOP)
 		windows_update();
 	else if (a == ewmh._NET_WORKAREA)
 		setup_workarea();
 	else
-		update = false;
+		return;
 
-	if (update)
-		script();
+	script();
 }
 
 void event_parse()
