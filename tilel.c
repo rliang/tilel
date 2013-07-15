@@ -36,8 +36,8 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_ewmh.h>
 
-#define SCRIPT_PATH "~/.xct"
-#define PIPE_PATH "/tmp/xct.fifo"
+#define SCRIPT_PATH "~/.tilel"
+#define PIPE_PATH "/tmp/tilel.fifo"
 #define PIPE_MODE S_IRUSR | S_IWUSR
 #define PIPE_FLAGS O_RDONLY | O_NONBLOCK 
 
