@@ -534,15 +534,20 @@ void input_interpret(char cmd, int target)
 		windows_target_absolute(target) :
 		windows_target_relative(target, active);
 
+	bool needs_refresh = true;
 	cmd = tolower(cmd);
+
 	if (cmd == 'a')  {
 		request_change_active(windows[target]);
+		needs_refresh = false;
 	} else if (cmd == 'm') {
 		xcb_window_t tmp = windows[active];
 		windows[active] = windows[target];
 		windows[target] = tmp;
-		script();
 	}
+
+	if (needs_refresh)
+		script();
 }
 
 void input_parse()
