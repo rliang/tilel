@@ -21,10 +21,8 @@
  */
 
 #include "tilel.h"
-/*#include <poll.h>*/
 #include <errno.h>
 #include <ctype.h>
-/*#include <fcntl.h>*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,59 +34,6 @@
 #include <sys/types.h>
 #include "wrappers.h"
 #include "script.h"
-/*#include <xcb/xcb_ewmh.h>*/
-
-/*
- *#define SCRIPT_PATH "~/.tilel"
- *#define PIPE_PATH "/tmp/tilel.fifo"
- *#define PIPE_MODE S_IRUSR | S_IWUSR
- *#define PIPE_FLAGS O_RDONLY | O_NONBLOCK 
- */
-
-/***************
- *  Variables  *
- ***************/
-
-/*
- *static const char *script_path = SCRIPT_PATH;
- *static const char *pipe_path = PIPE_PATH;
- *static const int pipe_flags = PIPE_FLAGS;
- *static const int pipe_mode = PIPE_MODE;
- *
- *static struct pollfd polls[2];
- *static xcb_connection_t *xcb;
- *static xcb_ewmh_connection_t ewmh;
- *static int screen;
- *
- *static uint32_t screen_x;
- *static uint32_t screen_y;
- *static uint32_t screen_width;
- *static uint32_t screen_height;
- *
- *static xcb_window_t *windows;
- *static uint32_t windows_len;
- */
-
-/****************
- *  Prototypes  *
- ****************/
-
-FILE *popen(const char *command, const char *type);
-int pclose(FILE *stream);
-
-/*
- *void setup();
- *void setup_connection();
- *void setup_workarea();
- *void setup_windows();
- *void setup_polls();
- */
-
-/*
- *void run();
- *void cleanup();
- *void quit();
- */
 
 void input_parse();
 void input_interpret(char cmd, int target);
