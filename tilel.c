@@ -35,6 +35,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include "wrappers.h"
+#include "script.h"
 /*#include <xcb/xcb_ewmh.h>*/
 
 /*
@@ -94,12 +95,6 @@ void input_interpret(char cmd, int target);
 
 void event_parse();
 void event_interpret(xcb_atom_t a);
-
-void script();
-FILE *script_open();
-void script_read(FILE *f);
-void script_parse(char *buf,
-		uint32_t *x, uint32_t *y, uint32_t *width, uint32_t *height);
 
 bool window_is_allowed(xcb_window_t w);
 bool window_allowed_by_desktop(xcb_window_t w);
@@ -290,40 +285,6 @@ void script_parse(char *buf,
 		*output[i] = strtoul(buf, &space, 10);
 		buf = space;
 	}
-}
-
-void script_read(FILE *f)
-{
-	uint32_t x, y, width, height;
-	char buf[BUFSIZ];
-
-	for (uint32_t i = 0; i < windows_len; ++i) {
-		if (fgets(buf, BUFSIZ, f) == NULL)
-			break;
-		script_parse(buf, &x, &y, &width, &height);
-		request_move_resize(windows[i], x, y, width, height);
-	}
-}
-
-FILE *script_open()
-{
-	char cmd[BUFSIZ];
-	snprintf(cmd, BUFSIZ, "%s %u %u %u", script_path,
-			screen_width, screen_height, windows_len);
-	return popen(cmd, "r");
-}
-
-void script()
-{
-	if (windows_len < 1)
-		return;
-
-	FILE *file = script_open();
-	if (file == NULL)
-		quit();
-
-	script_read(file);
-	pclose(file);
 }
 
 void setup_polls()
