@@ -21,7 +21,6 @@
  */
 
 #include "tilel.h"
-
 /*#include <poll.h>*/
 #include <errno.h>
 #include <ctype.h>
@@ -35,6 +34,7 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include "wrappers.h"
 /*#include <xcb/xcb_ewmh.h>*/
 
 /*
@@ -101,15 +101,6 @@ void script_read(FILE *f);
 void script_parse(char *buf,
 		uint32_t *x, uint32_t *y, uint32_t *width, uint32_t *height);
 
-xcb_window_t get_active_window();
-uint32_t get_current_desktop();
-void get_client_list(xcb_window_t **loc, uint32_t *len_loc);
-uint32_t get_wm_desktop(xcb_window_t w);
-void get_wm_window_type(xcb_window_t w,
-		xcb_atom_t **loc, uint32_t *len_loc);
-void get_frame_extents(xcb_window_t w,
-		uint32_t *left, uint32_t *right, uint32_t *top, uint32_t *bottom);
-
 bool window_is_allowed(xcb_window_t w);
 bool window_allowed_by_desktop(xcb_window_t w);
 bool window_allowed_by_type(xcb_window_t w);
@@ -135,120 +126,15 @@ int windows_target_relative(int count, int relativeto);
  *  Functions  *
  ***************/
 
-xcb_window_t get_active_window()
-{
-	xcb_get_property_cookie_t c =
-		xcb_ewmh_get_active_window_unchecked(&ewmh, screen);
-	xcb_window_t f = 0;
-	xcb_ewmh_get_active_window_reply(&ewmh, c, &f, NULL);
-	return f;
-}
-
-uint32_t get_current_desktop()
-{
-	xcb_get_property_cookie_t c =
-		xcb_ewmh_get_current_desktop_unchecked(&ewmh, screen);
-	uint32_t desktop = 0;
-	xcb_ewmh_get_current_desktop_reply(&ewmh, c, &desktop, NULL);
-	return desktop;
-}
-
-uint32_t get_wm_desktop(xcb_window_t w)
-{
-	xcb_get_property_cookie_t c = xcb_ewmh_get_wm_desktop_unchecked(&ewmh, w);
-	uint32_t desktop = 0;
-	xcb_ewmh_get_wm_desktop_reply(&ewmh, c, &desktop, NULL);
-	return desktop;
-}
-
-void get_client_list(xcb_window_t **loc, uint32_t *len_loc)
-{
-	*loc = NULL;
-	*len_loc = 0;
-
-	xcb_get_property_cookie_t c =
-		xcb_ewmh_get_client_list_unchecked(&ewmh, screen);
-	xcb_ewmh_get_windows_reply_t r;
-	if (!xcb_ewmh_get_client_list_reply(&ewmh, c, &r, NULL))
-		return;
-
-	uint32_t bytes = r.windows_len * sizeof(xcb_window_t);
-	*loc = malloc(bytes);
-	*len_loc = r.windows_len;
-	memcpy(*loc, r.windows, bytes);
-
-	xcb_ewmh_get_windows_reply_wipe(&r);
-}
-
-void get_wm_window_type(xcb_window_t w, xcb_atom_t **loc, uint32_t *len_loc)
-{
-	*loc = NULL;
-	*len_loc = 0;
-
-	xcb_get_property_cookie_t c =
-		xcb_ewmh_get_wm_window_type_unchecked(&ewmh, w);
-	xcb_ewmh_get_atoms_reply_t r;
-	if (!xcb_ewmh_get_wm_window_type_reply(&ewmh, c, &r, NULL))
-		return;
-
-	uint32_t bytes = r.atoms_len * sizeof(xcb_atom_t);
-	*loc = malloc(bytes);
-	*len_loc = r.atoms_len;
-	memcpy(*loc, r.atoms, bytes);
-
-	xcb_ewmh_get_atoms_reply_wipe(&r);
-}
-
-void get_frame_extents(xcb_window_t w,
-		uint32_t *left, uint32_t *right, uint32_t *top, uint32_t *bottom)
-{
-	xcb_get_property_cookie_t c = 
-		xcb_ewmh_get_frame_extents_unchecked(&ewmh, w);
-	xcb_ewmh_get_extents_reply_t r;
-	xcb_ewmh_get_frame_extents_reply(&ewmh, c, &r, NULL);
-	*left = r.left;
-	*right = r.right;
-	*top = r.top;
-	*bottom = r.bottom;
-}
-
-void request_change_active(xcb_window_t w)
-{
-	xcb_window_t f = get_active_window();
-	xcb_ewmh_request_change_active_window(&ewmh, screen, w,
-			XCB_EWMH_CLIENT_SOURCE_TYPE_OTHER, XCB_CURRENT_TIME, f);
-}
-
-void request_move_resize(xcb_window_t w, 
-		uint32_t x, uint32_t y, uint32_t width, uint32_t height)
-{
-	uint32_t f_left, f_right, f_top, f_bottom;
-	get_frame_extents(w, &f_left, &f_right, &f_top, &f_bottom);
-
-	x += screen_x;
-	y += screen_y;
-	width -= (f_left + f_right);
-	height -= (f_top + f_bottom);
-
-	xcb_ewmh_request_moveresize_window(&ewmh, screen, w, 0,
-			XCB_EWMH_CLIENT_SOURCE_TYPE_NORMAL,
-			XCB_EWMH_MOVERESIZE_WINDOW_X |
-			XCB_EWMH_MOVERESIZE_WINDOW_Y |
-			XCB_EWMH_MOVERESIZE_WINDOW_WIDTH |
-			XCB_EWMH_MOVERESIZE_WINDOW_HEIGHT,
-			x, y, width, height);
-}
-
 bool window_allowed_by_desktop(xcb_window_t w)
 {
-	return get_wm_desktop(w) == get_current_desktop();
+	return wrapper_wm_desktop(w) == wrapper_current_desktop();
 }
 
 bool window_allowed_by_type(xcb_window_t w)
 {
 	xcb_atom_t *atoms;
-	uint32_t atoms_len;
-	get_wm_window_type(w, &atoms, &atoms_len);
+	uint32_t atoms_len = wrapper_wm_window_type(w, &atoms);
 
 	if (atoms_len == 0)
 		return true;
@@ -363,8 +249,7 @@ void windows_insert_from(xcb_window_t *loc, uint32_t len)
 void windows_update()
 {
 	xcb_window_t *fetch;
-	uint32_t fetch_len;
-	get_client_list(&fetch, &fetch_len);
+	uint32_t fetch_len = wrapper_client_list(&fetch);
 	windowlist_filter(&fetch, &fetch_len);
 
 	if (windows_len == 0 || fetch_len == 0) {
@@ -535,7 +420,7 @@ void input_interpret(char cmd, int target)
 	if (windows_len < 1)
 		return;
 
-	int active = windows_search(get_active_window());
+	int active = windows_search(wrapper_active_window());
 	target = isupper(cmd) ?
 		windows_target_absolute(target) :
 		windows_target_relative(target, active);
