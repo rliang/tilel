@@ -53,7 +53,7 @@ static void script_read(FILE *f)
 static FILE *script_open()
 {
 	char cmd[BUFSIZ];
-	snprintf(cmd, BUFSIZ, "%s %u %u %u", script_path,
+	snprintf(cmd, BUFSIZ, "%s/%s %u %u %u", getenv("HOME"), script_path,
 			screen_xywh[2], screen_xywh[3], all_windows.len);
 	return popen(cmd, "r");
 }

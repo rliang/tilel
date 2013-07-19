@@ -8,7 +8,7 @@
 
 #include "windowlist.h"
 
-#define SCRIPT_PATH "~/.tilel"
+#define SCRIPT_PATH ".tilel"
 #define PIPE_PATH "/tmp/tilel.fifo"
 #define PIPE_FLAGS O_RDONLY | O_NONBLOCK
 #define PIPE_MODE S_IRWXU

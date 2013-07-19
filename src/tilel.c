@@ -134,7 +134,6 @@ void cleanup()
 
 void quit()
 {
-	perror(NULL);
 	exit(errno);
 }
 
