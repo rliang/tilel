@@ -18,7 +18,6 @@ const char *pipe_path;
 const int pipe_flags;
 const int pipe_mode;
 
-struct pollfd polls[2];
 xcb_connection_t *xcb;
 xcb_ewmh_connection_t ewmh;
 int screen;

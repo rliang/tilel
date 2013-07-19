@@ -40,6 +40,8 @@ const char *pipe_path = PIPE_PATH;
 const int pipe_flags = PIPE_FLAGS;
 const int pipe_mode = PIPE_MODE;
 
+static struct pollfd polls[2];
+
 void setup_polls()
 {
 	unlink(pipe_path);
