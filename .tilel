@@ -1,49 +1,84 @@
 #!/bin/sh
 
-# screen width
-sw=$1
-# screen height
-sh=$2
-# window count
-wc=$3
+screenwidth=$1
+screenheight=$2
+windowcount=$3
 
-# user-defined constants
-gap=8
-pad=(8 0 8 8)
-layout=1
+declare -A window=([x]=0 [y]=0 [width]=$screenwidth [height]=$screenheight)
 
-# base window dimensions
-x=$(( 0 + ${pad[0]} ))
-y=$(( 0 + ${pad[1]} ))
-w=$(( $sw - ${pad[2]} - $x ))
-h=$(( $sh - ${pad[3]} - $y ))
-
-# utility functions
-applygap() {
-	x=$(( $x + $1 ))
-	y=$(( $y + $1 ))
-	w=$(( $w - 2 * $1 ))
-	h=$(( $h - 2 * $1 ))
+output()
+{
+	echo ${window[x]} ${window[y]} ${window[width]} ${window[height]}
 }
 
-# layout functions
-vsplit() {
-	[[ $wc != 0 ]] && w=$(( $w / $wc ))
-	for (( i = 0; i < $wc; i++ )); do
-		applygap $gap
-		echo $x $y $w $h
-		applygap $(( -$gap ))
-		x=$(( $x + $w ))
+applygap()
+{
+	name=$2[@]
+	gap=("${!name}")
+	(( window[x] $1= gap[left] ))
+	(( window[y] $1= gap[top] ))
+	(( window[width] -= $1( gap[right] + gap[left] ) ))
+	(( window[height] -= $1( gap[bottom] + gap[top] ) ))
+}
+
+declare -A padding=([left]=8 [right]=8 [top]=0 [bottom]=8)
+declare -A windowgap=([left]=8 [right]=8 [top]=8 [bottom]=8)
+applygap + padding
+
+tile()
+{
+	masters=1
+	masters_file=/tmp/tilelmasters
+	[ -r $masters_file ] && masters=$(read < $masters_file)
+	factor=50
+	factor_file=/tmp/tilelfactor
+	[ -r $factor_file ] && factor=$(read < $factor_file)
+
+	(( window[width] *= factor ))
+	(( window[width] /= 100 ))
+	(( window[height] /= masters ))
+
+	i=0
+	for (( ; i < masters && i < windowcount; i++ ))
+	do
+		applygap + windowgap
+		output
+		applygap - windowgap
+		(( window[y] += window[height] ))
+	done
+
+	(( window[y] -= masters * window[height] ))
+	(( window[height] *= masters ))
+
+	(( window[x] += window[width] ))
+	(( window[width] /= factor ))
+	(( window[width] *= 100 ))
+
+	(( window[height] /= windowcount - masters ))
+	(( window[width] *= 100 - factor ))
+	(( window[width] /= 100 ))
+
+	for (( ; i < windowcount; i++ ))
+	do
+		applygap + windowgap
+		output
+		applygap - windowgap
+		(( window[y] += window[height] ))
 	done
 }
-monocle() {
-	for (( i = 0; i < $wc; i++ )); do
-		echo $x $y $w $h
+monocle()
+{
+	for (( i = 0; i < windowcount; i++ ))
+	do
+		output
 	done
 }
 
-# script
+layout=0;
+layout_file=/tmp/tilellayout
+[ -r $layout_file ] && layout=$(read < $layout_file)
+
 case $layout in
-	0) monocle ;;
-	*) vsplit ;;
+	0) tile ;;
+	*) monocle ;;
 esac
