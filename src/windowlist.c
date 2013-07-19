@@ -38,58 +38,6 @@ void windowlist_replace(struct windowlist *to, struct windowlist *from)
 	to->wins = from->wins;
 }
 
-static int windowlist_search_exclusive(struct windowlist *list,
-		struct windowlist *ex)
-{
-	for (uint32_t i = 0; i < ex->len; ++i)
-		if (windowlist_search(list, ex->wins[i]) < 0)
-			return i;
-	return -1;
-}
-
-static void windowlist_insert_into(struct windowlist *list,
-		struct windowlist *from)
-{
-	int i = windowlist_search_exclusive(from, list);
-	if (i < 0) 
-		return;
-
-	struct windowlist new;
-	new.len = list->len + 1;
-	new.wins = malloc(new.len * sizeof(xcb_window_t));
-
-	memcpy(&new.wins[1], list->wins, list->len * sizeof(xcb_window_t));
-	new.wins[0] = from->wins[i];
-
-	windowlist_replace(list, &new);
-	windowlist_insert_into(list, from);
-}
-
-static void windowlist_remove_from(struct windowlist *list,
-		struct windowlist *not_in)
-{
-	int i = windowlist_search_exclusive(list, not_in);
-	if (i < 0) 
-		return;
-
-	struct windowlist new;
-	new.len = list->len - 1;
-	new.wins = malloc(new.len * sizeof(xcb_window_t));
-
-	memcpy(new.wins, list->wins, i * sizeof(xcb_window_t));
-	memcpy(&new.wins[i], &list->wins[i + 1], (list->len - i) * sizeof(xcb_window_t));
-
-	windowlist_replace(list, &new);
-	windowlist_remove_from(list, not_in);
-}
-
-void windowlist_intersect(struct windowlist *list, struct windowlist *ex)
-{
-	windowlist_remove_from(list, ex);
-	windowlist_insert_into(list, ex);
-	free(ex->wins);
-}
-
 static uint32_t windowlist_zero_disallowed(struct windowlist *list,
 		bool (*allowed)(xcb_window_t))
 {
@@ -119,3 +67,45 @@ void windowlist_filter(struct windowlist *list, bool (*allowed)(xcb_window_t))
 	list->wins = new;
 	list->len = new_len;
 }
+
+static uint32_t windowlist_subtract(struct windowlist *list,
+		struct windowlist *other, bool *difference)
+{
+	for (uint32_t i = 0; i < list->len; ++i)
+		difference[i] = false;
+
+	uint32_t list_ex_len = list->len;
+
+	for (uint32_t i = 0; i < list->len; ++i)
+		if (windowlist_search(other, list->wins[i]) < 0) {
+			difference[i] = true;
+			list_ex_len -= 1;
+		}
+
+	return list_ex_len;
+}
+
+void windowlist_stable_merge(struct windowlist *list,
+		struct windowlist *merged)
+{
+	bool list_ex[list->len];
+	bool merged_ex[merged->len];
+	uint32_t list_ex_len = windowlist_subtract(list, merged, list_ex);
+	uint32_t merged_ex_len = windowlist_subtract(merged, list, merged_ex);
+
+	struct windowlist new;
+	new.len = list->len - list_ex_len + merged_ex_len;
+	new.wins = malloc(new.len * sizeof(xcb_window_t));
+
+	uint32_t new_i = 0;
+	for (uint32_t i = 0; i < list->len; ++i)
+		if (list_ex[i])
+			new.wins[new_i++] = list->wins[i];
+	for (uint32_t i = 0; i < merged->len; ++i)
+		if (merged_ex[i])
+			new.wins[new_i++] = merged->wins[i];
+
+	windowlist_replace(list, &new);
+	free(merged->wins);
+}
+
