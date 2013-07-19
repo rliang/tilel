@@ -1,7 +1,7 @@
 #ifndef WRAPPERS_H
 #define WRAPPERS_H
 
-#include <xcb/xcb_ewmh.h>
+#include <xcb/xcb.h>
 
 xcb_window_t wrapper_active_window();
 uint32_t wrapper_current_desktop();

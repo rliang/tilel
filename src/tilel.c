@@ -33,6 +33,7 @@
 #include <sys/types.h>
 #include "windowlist.h"
 #include "wrappers.h"
+#include "manager.h"
 #include "script.h"
 
 const char *script_path = "~/.tilel";
@@ -46,95 +47,9 @@ void input_interpret(char cmd, int target);
 void event_parse();
 void event_interpret(xcb_atom_t a);
 
-bool window_allowed(xcb_window_t w);
-bool window_allowed_by_desktop(xcb_window_t w);
-bool window_allowed_by_type(xcb_window_t w);
-
-void windows_update();
-int windows_search(xcb_window_t key);
-int windows_target_absolute(int count);
-int windows_target_relative(int count, int relativeto);
-
 /***************
  *  Functions  *
  ***************/
-
-bool window_allowed_by_desktop(xcb_window_t w)
-{
-	return wrapper_wm_desktop(w) == wrapper_current_desktop();
-}
-
-bool window_allowed_by_type(xcb_window_t w)
-{
-	xcb_atom_t *atoms;
-	uint32_t atoms_len = wrapper_wm_window_type(w, &atoms);
-
-	if (atoms_len == 0)
-		return true;
-
-	bool allowed = false;
-	for (uint32_t i = 0; i < atoms_len; ++i)
-		if (atoms[i] == ewmh._NET_WM_WINDOW_TYPE_NORMAL) {
-			allowed = true;
-			break;
-		}
-
-	free(atoms);
-	return allowed;
-}
-
-bool window_allowed(xcb_window_t w)
-{
-	return window_allowed_by_desktop(w)
-		&& window_allowed_by_type(w);
-}
-
-int windows_search(xcb_window_t key)
-{
-	return windowlist_search(&all_windows, key);
-}
-
-void windows_update()
-{
-	struct windowlist fetch;
-	fetch.len = wrapper_client_list(&fetch.wins);
-	windowlist_filter(&fetch, window_allowed);
-
-	if (all_windows.len == 0 || fetch.len == 0)
-		windowlist_replace(&all_windows, &fetch);
-	else
-		windowlist_intersect(&all_windows, &fetch);
-}
-
-int windows_target_relative(int count, int relativeto)
-{
-	count += relativeto;
-	while (count >= (int)all_windows.len)
-		count -= all_windows.len;
-	while (count < 0)
-		count += all_windows.len;
-	return count;
-}
-
-int windows_target_absolute(int count)
-{
-	if (count < 0)
-		count = 0;
-	else if (count >= (int)all_windows.len)
-		count = all_windows.len - 1;
-	return count;
-}
-
-void script_parse(char *buf,
-		uint32_t *x, uint32_t *y, uint32_t *width, uint32_t *height)
-{
-	uint32_t *output[4] = { x, y, width, height };
-	for (uint32_t i = 0; i < 4; ++i) {
-		char *space = buf;
-		*output[i] = strtoul(buf, &space, 10);
-		buf = space;
-	}
-}
 
 void setup_polls()
 {
@@ -157,7 +72,7 @@ void setup_windows()
 {
 	all_windows.len = 0;
 	all_windows.wins = malloc(0);
-	windows_update();
+	manager_update();
 }
 
 void setup_workarea()
@@ -203,7 +118,7 @@ void setup()
 void event_interpret(xcb_atom_t a)
 {
 	if (a == ewmh._NET_CLIENT_LIST || a == ewmh._NET_CURRENT_DESKTOP)
-		windows_update();
+		manager_update();
 	else if (a == ewmh._NET_WORKAREA)
 		setup_workarea();
 	else
@@ -230,25 +145,13 @@ void input_interpret(char cmd, int target)
 	if (all_windows.len < 1)
 		return;
 
-	int active = windows_search(wrapper_active_window());
-	target = isupper(cmd) ?
-		windows_target_absolute(target) :
-		windows_target_relative(target, active);
-
-	bool needs_refresh = true;
+	bool relative = !isupper(cmd);
 	cmd = tolower(cmd);
 
-	if (cmd == 'a')  {
-		wrapper_change_active(all_windows.wins[target]);
-		needs_refresh = false;
-	} else if (cmd == 'm') {
-		xcb_window_t tmp = all_windows.wins[active];
-		all_windows.wins[active] = all_windows.wins[target];
-		all_windows.wins[target] = tmp;
-	}
-
-	if (needs_refresh)
-		script();
+	if (cmd == 'a')
+		manager_activate(target, relative);
+	else if (cmd == 'm')
+		manager_move(target, relative);
 }
 
 void input_parse()
