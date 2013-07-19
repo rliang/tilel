@@ -8,7 +8,7 @@ CFLAGS=-std=c99 -Wall -Wextra -pedantic -s -pipe
 LDFLAGS=`pkg-config --cflags --libs ${LIBS}`
 
 DEBUG=-O0 -g
-RELEASE=-O2 -DNDEBUG
+RELEASE=-Ofast -DNDEBUG
 
 PREFIX?= /usr/local
 BINDIR?= ${PREFIX}/bin

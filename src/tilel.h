@@ -8,9 +8,10 @@
 
 #include "windowlist.h"
 
-/***************
- *  Variables  *
- ***************/
+#define SCRIPT_PATH "~/.tilel" 
+#define PIPE_PATH "/tmp/tilel.fifo" 
+#define PIPE_FLAGS S_IRUSR | S_IWUSR 
+#define PIPE_MODE O_RDONLY | O_NONBLOCK 
 
 const char *script_path;
 const char *pipe_path;
@@ -29,19 +30,6 @@ uint32_t screen_height;
 
 struct windowlist all_windows;
 
-/****************
- *  Prototypes  *
- ****************/
-
-void setup();
-void setup_connection();
-void setup_workarea();
-void setup_windows();
-void setup_polls();
-
-void run();
-
-void cleanup();
 void quit();
 
 #endif /* TILEL_H */

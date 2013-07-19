@@ -36,10 +36,10 @@
 #include "manager.h"
 #include "script.h"
 
-const char *script_path = "~/.tilel";
-const char *pipe_path = "/tmp/tilel.fifo";
-const int pipe_flags = S_IRUSR | S_IWUSR;
-const int pipe_mode = O_RDONLY | O_NONBLOCK;
+const char *script_path = SCRIPT_PATH;
+const char *pipe_path = PIPE_PATH;
+const int pipe_flags = PIPE_FLAGS;
+const int pipe_mode = PIPE_MODE;
 
 void setup_polls()
 {
