@@ -12,10 +12,10 @@
  *  Variables  *
  ***************/
 
-const char *script_path = "~/.tilel";
-const char *pipe_path = "/tmp/tilel.fifo";
-const int pipe_flags = S_IRUSR | S_IWUSR;
-const int pipe_mode = O_RDONLY | O_NONBLOCK;
+const char *script_path;
+const char *pipe_path;
+const int pipe_flags;
+const int pipe_mode;
 
 struct pollfd polls[2];
 xcb_connection_t *xcb;

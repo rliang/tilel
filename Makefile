@@ -1,7 +1,8 @@
 EXEC=tilel
 LIBS=xcb-ewmh
 
-SRCS=$(wildcard *.c)
+SRCS=$(wildcard src/*.c)
+OBJS=$(SRCS:.c=.o)
 
 CFLAGS=-std=c99 -Wall -Wextra -pedantic -s -pipe
 LDFLAGS=`pkg-config --cflags --libs ${LIBS}`
@@ -20,11 +21,11 @@ debug: ${EXEC}
 release: CFLAGS+=${RELEASE}
 release: ${EXEC}
 
-${EXEC}: clean
-	${CC} ${CFLAGS} ${LDFLAGS} ${SRCS} -o ${EXEC}
+${EXEC}: ${OBJS}
+	${CC} ${LDFLAGS} ${OBJS} -o ${EXEC}
 
 clean:
-	rm -f ${EXEC}
+	rm -f ${OBJS}
 
 run: debug
 	valgrind --track-origins=yes --leak-check=full ./${EXEC}
