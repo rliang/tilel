@@ -29,9 +29,9 @@
 #include <unistd.h>
 #include <signal.h>
 #include <stdbool.h>
-#include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include "windowlist.h"
 #include "wrappers.h"
 #include "script.h"
 
@@ -41,7 +41,7 @@ void input_interpret(char cmd, int target);
 void event_parse();
 void event_interpret(xcb_atom_t a);
 
-bool window_is_allowed(xcb_window_t w);
+bool window_allowed(xcb_window_t w);
 bool window_allowed_by_desktop(xcb_window_t w);
 bool window_allowed_by_type(xcb_window_t w);
 
@@ -96,7 +96,7 @@ void windows_update()
 {
 	struct windowlist fetch;
 	fetch.len = wrapper_client_list(&fetch.wins);
-	windowlist_filter(&fetch, window_is_allowed);
+	windowlist_filter(&fetch, window_allowed);
 
 	if (all_windows.len == 0 || fetch.len == 0)
 		windowlist_replace(&all_windows, &fetch);
@@ -107,10 +107,10 @@ void windows_update()
 int windows_target_relative(int count, int relativeto)
 {
 	count += relativeto;
-	while (count >= (int)windows_len)
-		count -= windows_len;
+	while (count >= (int)all_windows.len)
+		count -= all_windows.len;
 	while (count < 0)
-		count += windows_len;
+		count += all_windows.len;
 	return count;
 }
 
@@ -118,8 +118,8 @@ int windows_target_absolute(int count)
 {
 	if (count < 0)
 		count = 0;
-	else if (count >= (int)windows_len)
-		count = windows_len - 1;
+	else if (count >= (int)all_windows.len)
+		count = all_windows.len - 1;
 	return count;
 }
 
@@ -153,8 +153,8 @@ void setup_polls()
 
 void setup_windows()
 {
-	windows_len = 0;
-	windows = malloc(0);
+	all_windows.len = 0;
+	all_windows.wins = malloc(0);
 	windows_update();
 }
 
@@ -225,7 +225,7 @@ void event_parse()
 
 void input_interpret(char cmd, int target)
 {
-	if (windows_len < 1)
+	if (all_windows.len < 1)
 		return;
 
 	int active = windows_search(wrapper_active_window());
@@ -237,12 +237,12 @@ void input_interpret(char cmd, int target)
 	cmd = tolower(cmd);
 
 	if (cmd == 'a')  {
-		wrapper_change_active(windows[target]);
+		wrapper_change_active(all_windows.wins[target]);
 		needs_refresh = false;
 	} else if (cmd == 'm') {
-		xcb_window_t tmp = windows[active];
-		windows[active] = windows[target];
-		windows[target] = tmp;
+		xcb_window_t tmp = all_windows.wins[active];
+		all_windows.wins[active] = all_windows.wins[target];
+		all_windows.wins[target] = tmp;
 	}
 
 	if (needs_refresh)
@@ -285,7 +285,7 @@ void cleanup()
 {
 	close(polls[0].fd);
 	unlink(pipe_path);
-	free(windows);
+	free(all_windows.wins);
 	xcb_ewmh_connection_wipe(&ewmh);
 	xcb_flush(xcb);
 	xcb_disconnect(xcb);

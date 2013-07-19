@@ -3,6 +3,7 @@
 
 #include <poll.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 #include <xcb/xcb_ewmh.h>
 
 #include "windowlist.h"
@@ -27,8 +28,6 @@ uint32_t screen_width;
 uint32_t screen_height;
 
 struct windowlist all_windows;
-xcb_window_t *windows;
-uint32_t windows_len;
 
 /****************
  *  Prototypes  *
