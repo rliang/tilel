@@ -74,12 +74,12 @@ static uint32_t windowlist_subtract(struct windowlist *list,
 	for (uint32_t i = 0; i < list->len; ++i)
 		difference[i] = false;
 
-	uint32_t list_ex_len = list->len;
+	uint32_t list_ex_len = 0;
 
 	for (uint32_t i = 0; i < list->len; ++i)
 		if (windowlist_search(other, list->wins[i]) < 0) {
 			difference[i] = true;
-			list_ex_len -= 1;
+			list_ex_len += 1;
 		}
 
 	return list_ex_len;
@@ -94,12 +94,12 @@ void windowlist_stable_merge(struct windowlist *list,
 	uint32_t merged_ex_len = windowlist_subtract(merged, list, merged_ex);
 
 	struct windowlist new;
-	new.len = list->len - list_ex_len + merged_ex_len;
+	new.len = (list->len - list_ex_len) + merged_ex_len;
 	new.wins = malloc(new.len * sizeof(xcb_window_t));
 
 	uint32_t new_i = 0;
 	for (uint32_t i = 0; i < list->len; ++i)
-		if (list_ex[i])
+		if (!list_ex[i])
 			new.wins[new_i++] = list->wins[i];
 	for (uint32_t i = 0; i < merged->len; ++i)
 		if (merged_ex[i])
