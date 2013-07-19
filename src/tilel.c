@@ -52,9 +52,6 @@ bool window_allowed_by_type(xcb_window_t w);
 
 void windows_update();
 int windows_search(xcb_window_t key);
-void windows_replace(xcb_window_t *list);
-void windows_insert_from(xcb_window_t *list, uint32_t len);
-void windows_remove_not_in(xcb_window_t *list, uint32_t len);
 int windows_target_absolute(int count);
 int windows_target_relative(int count, int relativeto);
 
