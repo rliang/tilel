@@ -26,13 +26,13 @@
 #include <unistd.h>
 #include <string.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include "windowlist.h"
 #include "wrappers.h"
 #include "manager.h"
 #include "script.h"
+#include "events.h"
 #include "input.h"
 
 const char *script_path = SCRIPT_PATH;
@@ -101,29 +101,6 @@ void setup()
 	setup_workarea();
 	setup_windows();
 	setup_polls();
-}
-
-void event_interpret(xcb_atom_t a)
-{
-	if (a == ewmh._NET_CLIENT_LIST || a == ewmh._NET_CURRENT_DESKTOP)
-		manager_update();
-	else if (a == ewmh._NET_WORKAREA)
-		setup_workarea();
-	else
-		return;
-}
-
-void event_parse()
-{
-	if (xcb_connection_has_error(xcb))
-		quit();
-
-	xcb_generic_event_t *xe = xcb_poll_for_event(xcb);
-
-	if ((xe->response_type & ~0x80) == XCB_PROPERTY_NOTIFY)
-		event_interpret(((xcb_property_notify_event_t *)xe)->atom);
-
-	free(xe);
 }
 
 void run()

@@ -22,7 +22,6 @@
 
 #include "wrappers.h"
 #include <string.h>
-#include <xcb/xcb_ewmh.h>
 #include "tilel.h"
 
 xcb_window_t wrapper_active_window()
