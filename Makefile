@@ -5,7 +5,8 @@ SRCS=$(wildcard src/*.c)
 OBJS=$(SRCS:.c=.o)
 
 CFLAGS=-std=c99 -Wall -Wextra -pedantic -s -pipe
-LDFLAGS=`pkg-config --cflags --libs ${LIBS}`
+CFLAGS+=`pkg-config --cflags ${LIBS}`
+LDFLAGS=`pkg-config --libs ${LIBS}`
 
 DEBUG=-O0 -g
 RELEASE=-Ofast -DNDEBUG
@@ -25,7 +26,7 @@ ${EXEC}: ${OBJS}
 	${CC} ${LDFLAGS} ${OBJS} -o ${EXEC}
 
 clean:
-	rm -f ${OBJS}
+	rm -f ${OBJS} ${EXEC}
 
 run: debug
 	valgrind --track-origins=yes --leak-check=full ./${EXEC}
