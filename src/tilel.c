@@ -22,11 +22,9 @@
 
 #include "tilel.h"
 #include <errno.h>
-#include <ctype.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
+#include <string.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <sys/time.h>
@@ -35,6 +33,7 @@
 #include "wrappers.h"
 #include "manager.h"
 #include "script.h"
+#include "input.h"
 
 const char *script_path = SCRIPT_PATH;
 const char *pipe_path = PIPE_PATH;
@@ -125,33 +124,6 @@ void event_parse()
 		event_interpret(((xcb_property_notify_event_t *)xe)->atom);
 
 	free(xe);
-}
-
-void input_interpret(char cmd, int target)
-{
-	if (all_windows.len < 1)
-		return;
-
-	bool relative = !isupper(cmd);
-	cmd = tolower(cmd);
-
-	if (cmd == 'a')
-		manager_activate(target, relative);
-	else if (cmd == 'm')
-		manager_move(target, relative);
-}
-
-void input_parse()
-{
-	char buf[BUFSIZ];
-
-	int len = read(polls[0].fd, buf, BUFSIZ);
-	if (len < 0) 
-		quit();
-
-	char cmd = buf[0];
-	int target = atoi(&buf[1]);
-	input_interpret(cmd, target);
 }
 
 void run()
