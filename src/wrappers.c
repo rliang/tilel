@@ -110,8 +110,8 @@ void wrapper_move_resize(xcb_window_t w, uint32_t extents[4])
 	uint32_t frame[4];
 	wrapper_frame_extents(w, frame);
 
-	extents[0] += screen_x;
-	extents[1] += screen_y;
+	extents[0] += screen_xywh[0];
+	extents[1] += screen_xywh[1];
 	extents[2] -= (frame[0] + frame[1]);
 	extents[3] -= (frame[2] + frame[3]);
 

@@ -23,11 +23,7 @@ xcb_connection_t *xcb;
 xcb_ewmh_connection_t ewmh;
 int screen;
 
-uint32_t screen_x;
-uint32_t screen_y;
-uint32_t screen_width;
-uint32_t screen_height;
-
+uint32_t screen_xywh[4];
 struct windowlist all_windows;
 
 void quit();

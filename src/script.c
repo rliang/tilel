@@ -54,7 +54,7 @@ static FILE *script_open()
 {
 	char cmd[BUFSIZ];
 	snprintf(cmd, BUFSIZ, "%s %u %u %u", script_path,
-			screen_width, screen_height, all_windows.len);
+			screen_xywh[2], screen_xywh[3], all_windows.len);
 	return popen(cmd, "r");
 }
 

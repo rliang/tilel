@@ -71,10 +71,10 @@ void setup_workarea()
 	if (!xcb_ewmh_get_workarea_reply(&ewmh, c, &r, NULL))
 		quit();
 
-	screen_x = r.workarea->x;
-	screen_y = r.workarea->y;
-	screen_width = r.workarea->width;
-	screen_height = r.workarea->height;
+	screen_xywh[0] = r.workarea->x;
+	screen_xywh[1] = r.workarea->y;
+	screen_xywh[2] = r.workarea->width;
+	screen_xywh[3] = r.workarea->height;
 
 	xcb_ewmh_get_workarea_reply_wipe(&r);
 }
