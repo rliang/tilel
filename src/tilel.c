@@ -112,7 +112,6 @@ void setup()
 	setup_workarea();
 	setup_windows();
 	setup_polls();
-	script();
 }
 
 void event_interpret(xcb_atom_t a)
@@ -123,8 +122,6 @@ void event_interpret(xcb_atom_t a)
 		setup_workarea();
 	else
 		return;
-
-	script();
 }
 
 void event_parse()

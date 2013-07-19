@@ -2,6 +2,7 @@
 #include <xcb/xcb.h>
 #include "windowlist.h"
 #include "wrappers.h"
+#include "script.h"
 #include "tilel.h"
 
 bool manager_allows_type(xcb_window_t w)
@@ -44,6 +45,8 @@ void manager_update()
 		windowlist_replace(&all_windows, &fetch);
 	else
 		windowlist_intersect(&all_windows, &fetch);
+
+	script();
 }
 
 static int manager_search(xcb_window_t key)
