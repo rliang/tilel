@@ -8,10 +8,10 @@
 
 #include "windowlist.h"
 
-#define SCRIPT_PATH "~/.tilel" 
-#define PIPE_PATH "/tmp/tilel.fifo" 
-#define PIPE_FLAGS S_IRUSR | S_IWUSR 
-#define PIPE_MODE O_RDONLY | O_NONBLOCK 
+#define SCRIPT_PATH "~/.tilel"
+#define PIPE_PATH "/tmp/tilel.fifo"
+#define PIPE_FLAGS O_RDONLY | O_NONBLOCK
+#define PIPE_MODE S_IRWXU
 
 const char *script_path;
 const char *pipe_path;
