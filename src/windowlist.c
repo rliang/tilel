@@ -55,17 +55,16 @@ static uint32_t windowlist_zero_disallowed(struct windowlist *list,
 
 void windowlist_filter(struct windowlist *list, bool (*allowed)(xcb_window_t))
 {
-	uint32_t new_len = windowlist_zero_disallowed(list, allowed);
-	xcb_window_t *new = malloc(new_len * sizeof(xcb_window_t));
+	struct windowlist new;
+	new.len = windowlist_zero_disallowed(list, allowed);
+	new.wins = malloc(new.len * sizeof(xcb_window_t));
 
 	uint32_t new_i = 0;
 	for (uint32_t i = 0; i < list->len; ++i) 
 		if (list->wins[i] != 0)
-			new[new_i++] = list->wins[i];
+			new.wins[new_i++] = list->wins[i];
 
-	free(list->wins);
-	list->wins = new;
-	list->len = new_len;
+	windowlist_replace(list, &new);
 }
 
 static uint32_t windowlist_subtract(struct windowlist *list,
@@ -85,27 +84,27 @@ static uint32_t windowlist_subtract(struct windowlist *list,
 	return list_ex_len;
 }
 
-void windowlist_stable_merge(struct windowlist *list,
-		struct windowlist *merged)
+void windowlist_stable_replace(struct windowlist *list,
+		struct windowlist *replaced)
 {
 	bool list_ex[list->len];
-	bool merged_ex[merged->len];
-	uint32_t list_ex_len = windowlist_subtract(list, merged, list_ex);
-	uint32_t merged_ex_len = windowlist_subtract(merged, list, merged_ex);
+	bool replaced_ex[replaced->len];
+	uint32_t list_ex_len = windowlist_subtract(list, replaced, list_ex);
+	uint32_t replaced_ex_len = windowlist_subtract(replaced, list, replaced_ex);
 
 	struct windowlist new;
-	new.len = (list->len - list_ex_len) + merged_ex_len;
+	new.len = (list->len - list_ex_len) + replaced_ex_len;
 	new.wins = malloc(new.len * sizeof(xcb_window_t));
 
 	uint32_t new_i = 0;
 	for (uint32_t i = 0; i < list->len; ++i)
 		if (!list_ex[i])
 			new.wins[new_i++] = list->wins[i];
-	for (uint32_t i = 0; i < merged->len; ++i)
-		if (merged_ex[i])
-			new.wins[new_i++] = merged->wins[i];
+	for (uint32_t i = 0; i < replaced->len; ++i)
+		if (replaced_ex[i])
+			new.wins[new_i++] = replaced->wins[i];
 
 	windowlist_replace(list, &new);
-	free(merged->wins);
+	free(replaced->wins);
 }
 

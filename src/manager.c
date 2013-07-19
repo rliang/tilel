@@ -66,7 +66,7 @@ void manager_update()
 	if (all_windows.len == 0 || fetch.len == 0)
 		windowlist_replace(&all_windows, &fetch);
 	else
-		windowlist_stable_merge(&all_windows, &fetch);
+		windowlist_stable_replace(&all_windows, &fetch);
 
 	script();
 }

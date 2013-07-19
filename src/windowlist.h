@@ -12,6 +12,6 @@ struct windowlist {
 int windowlist_search(struct windowlist *list, xcb_window_t key);
 void windowlist_replace(struct windowlist *to, struct windowlist *from);
 void windowlist_filter(struct windowlist *list, bool (*allowed)(xcb_window_t));
-void windowlist_stable_merge(struct windowlist *list, struct windowlist *merged);
+void windowlist_stable_replace(struct windowlist *list, struct windowlist *merged);
 
 #endif /* WINDOWLIST_H */
