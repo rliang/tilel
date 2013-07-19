@@ -27,7 +27,7 @@
 #include "tilel.h"
 #include "manager.h"
 
-void input_interpret(char cmd, int target)
+static void input_interpret(char cmd, int target)
 {
 	if (all_windows.len < 1)
 		return;
