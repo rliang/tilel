@@ -27,12 +27,8 @@ applygap + padding
 
 tile()
 {
-	masters=1
-	masters_file=/tmp/tilelmasters
-	[ -r $masters_file ] && masters=$(read < $masters_file)
-	factor=50
-	factor_file=/tmp/tilelfactor
-	[ -r $factor_file ] && factor=$(read < $factor_file)
+	masters=$(read < /tmp/tilelmasters && echo $REPLY || echo 1)
+	factor=$(read < /tmp/tilelfactor && echo $REPLY || echo 50)
 
 	(( window[width] *= factor ))
 	(( window[width] /= 100 ))
@@ -74,10 +70,7 @@ monocle()
 	done
 }
 
-layout=0;
-layout_file=/tmp/tilellayout
-[ -r $layout_file ] && layout=$(read < $layout_file)
-
+layout=$(read < /tmp/tilellayout && echo $REPLY || echo 0)
 case $layout in
 	0) tile ;;
 	*) monocle ;;
