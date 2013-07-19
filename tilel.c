@@ -45,15 +45,6 @@ bool window_is_allowed(xcb_window_t w);
 bool window_allowed_by_desktop(xcb_window_t w);
 bool window_allowed_by_type(xcb_window_t w);
 
-void request_change_active(xcb_window_t w);
-void request_move_resize(xcb_window_t w,
-		uint32_t x, uint32_t y, uint32_t width, uint32_t height);
-
-int windowlist_search(xcb_window_t key, xcb_window_t *list, uint32_t len);
-void windowlist_filter(xcb_window_t **loc, uint32_t *loc_len);
-int windowlist_search_exclusive(xcb_window_t *ex, uint32_t ex_len,
-		xcb_window_t *list, uint32_t len);
-
 void windows_update();
 int windows_search(xcb_window_t key);
 void windows_replace(xcb_window_t *list);
@@ -96,110 +87,21 @@ bool window_allowed(xcb_window_t w)
 		&& window_allowed_by_type(w);
 }
 
-int windowlist_search(xcb_window_t key,
-		xcb_window_t *w, uint32_t len)
-{
-	for (uint32_t i = 0; i < len; ++i) 
-		if (w[i] == key)
-			return i;
-	return -1;
-}
-
-int windowlist_search_exclusive(xcb_window_t *ex, uint32_t ex_len,
-		xcb_window_t *list, uint32_t len)
-{
-	int index = -1;
-	for (uint32_t i = 0; i < ex_len; ++i)
-		if (windowlist_search(ex[i], list, len) < 0) {
-			index = i;
-			break;
-		} 
-	return index;
-}
-
-void windowlist_filter(xcb_window_t **loc, uint32_t *len_loc)
-{
-	uint32_t new_len = *len_loc;
-
-	for (uint32_t i = 0; i < *len_loc; ++i) {
-		if (window_allowed((*loc)[i])) 
-			continue;
-		(*loc)[i] = 0;
-		new_len -= 1;
-	}
-
-	xcb_window_t *new = malloc(new_len * sizeof(xcb_window_t));
-
-	uint32_t new_i = 0;
-	for (uint32_t i = 0; i < *len_loc; ++i) 
-		if ((*loc)[i] != 0)
-			new[new_i++] = (*loc)[i];
-
-	free(*loc);
-	*loc = new;
-	*len_loc = new_len;
-}
-
-void windows_replace(xcb_window_t *new)
-{
-	free(windows);
-	windows = new;
-}
-
 int windows_search(xcb_window_t key)
 {
-	return windowlist_search(key, windows, windows_len);
-}
-
-void windows_remove_not_in(xcb_window_t *loc, uint32_t len)
-{
-	int i = windowlist_search_exclusive(windows, windows_len, loc, len);
-	if (i < 0) 
-		return;
-
-	windows_len -= 1;
-
-	xcb_window_t *new = malloc(windows_len * sizeof(xcb_window_t));
-	memcpy(new, windows,
-			i * sizeof(xcb_window_t));
-	memcpy(&new[i], &windows[i + 1],
-			(windows_len - i) * sizeof(xcb_window_t));
-
-	windows_replace(new);
-	windows_remove_not_in(loc, len);
-}
-
-void windows_insert_from(xcb_window_t *loc, uint32_t len)
-{
-	int i = windowlist_search_exclusive(loc, len, windows, windows_len);
-	if (i < 0) 
-		return;
-
-	windows_len += 1;
-
-	xcb_window_t *new = malloc(windows_len * sizeof(xcb_window_t));
-	memcpy(&new[1], windows,
-			(windows_len - 1) * sizeof(xcb_window_t));
-	new[0] = loc[i];
-
-	windows_replace(new);
-	windows_insert_from(loc, len);
+	return windowlist_search(&all_windows, key);
 }
 
 void windows_update()
 {
-	xcb_window_t *fetch;
-	uint32_t fetch_len = wrapper_client_list(&fetch);
-	windowlist_filter(&fetch, &fetch_len);
+	struct windowlist fetch;
+	fetch.len = wrapper_client_list(&fetch.wins);
+	windowlist_filter(&fetch, window_is_allowed);
 
-	if (windows_len == 0 || fetch_len == 0) {
-		windows_len = fetch_len;
-		windows_replace(fetch);
-	} else {
-		windows_remove_not_in(fetch, fetch_len);
-		windows_insert_from(fetch, fetch_len);
-		free(fetch);
-	}
+	if (all_windows.len == 0 || fetch.len == 0)
+		windowlist_replace(&all_windows, &fetch);
+	else
+		windowlist_intersect(&all_windows, &fetch);
 }
 
 int windows_target_relative(int count, int relativeto)
@@ -335,7 +237,7 @@ void input_interpret(char cmd, int target)
 	cmd = tolower(cmd);
 
 	if (cmd == 'a')  {
-		request_change_active(windows[target]);
+		wrapper_change_active(windows[target]);
 		needs_refresh = false;
 	} else if (cmd == 'm') {
 		xcb_window_t tmp = windows[active];
