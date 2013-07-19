@@ -19,7 +19,7 @@ debug: CFLAGS+=${DEBUG}
 debug: ${EXEC}
 
 release: CFLAGS+=${RELEASE}
-release: ${EXEC}
+release: clean ${EXEC}
 
 ${EXEC}: ${OBJS}
 	${CC} ${LDFLAGS} ${OBJS} -o ${EXEC}
