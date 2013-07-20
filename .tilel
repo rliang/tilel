@@ -21,6 +21,13 @@ applygap()
 	(( window[height] -= $1( gap[bottom] + gap[top] ) ))
 }
 
+gapoutput()
+{
+	applygap + $1
+	output
+	applygap - $1
+}
+
 declare -A padding=([left]=8 [right]=8 [top]=0 [bottom]=8)
 declare -A windowgap=([left]=8 [right]=8 [top]=8 [bottom]=8)
 applygap + padding
@@ -37,28 +44,24 @@ tile()
 	i=0
 	for (( ; i < masters && i < windowcount; i++ ))
 	do
-		applygap + windowgap
-		output
-		applygap - windowgap
+		gapoutput windowgap
 		(( window[y] += window[height] ))
 	done
 
 	(( window[y] -= masters * window[height] ))
 	(( window[height] *= masters ))
-
 	(( window[x] += window[width] ))
-	(( window[width] /= factor ))
 	(( window[width] *= 100 ))
+	(( window[width] /= factor ))
 
-	(( window[height] /= windowcount - masters ))
 	(( window[width] *= 100 - factor ))
 	(( window[width] /= 100 ))
 
+	(( window[height] /= windowcount - masters ))
+
 	for (( ; i < windowcount; i++ ))
 	do
-		applygap + windowgap
-		output
-		applygap - windowgap
+		gapoutput windowgap
 		(( window[y] += window[height] ))
 	done
 }
@@ -66,12 +69,17 @@ monocle()
 {
 	for (( i = 0; i < windowcount; i++ ))
 	do
-		output
+		gapoutput windowgap
 	done
 }
 
-layout=$(read < /tmp/tilellayout && echo $REPLY || echo 0)
-case $layout in
-	0) tile ;;
-	*) monocle ;;
-esac
+if [[ $windowcount < 2 ]]
+then
+	monocle
+else
+	layout=$(read < /tmp/tilellayout && echo $REPLY || echo 0)
+	case $layout in
+		0) tile ;;
+		*) monocle ;;
+	esac
+fi
