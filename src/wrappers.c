@@ -115,8 +115,9 @@ void wrapper_move_resize(xcb_window_t w, uint32_t extents[4])
 	extents[2] -= (frame[0] + frame[1]);
 	extents[3] -= (frame[2] + frame[3]);
 
-	xcb_ewmh_request_moveresize_window(&ewmh, screen, w, 0,
-			XCB_EWMH_CLIENT_SOURCE_TYPE_NORMAL,
+	xcb_ewmh_request_moveresize_window(&ewmh, screen, w,
+			XCB_GRAVITY_STATIC,
+			XCB_EWMH_CLIENT_SOURCE_TYPE_OTHER,
 			XCB_EWMH_MOVERESIZE_WINDOW_X |
 			XCB_EWMH_MOVERESIZE_WINDOW_Y |
 			XCB_EWMH_MOVERESIZE_WINDOW_WIDTH |
