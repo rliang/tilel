@@ -61,7 +61,7 @@ void setup_windows()
 {
 	all_windows.len = 0;
 	all_windows.wins = malloc(0);
-	manager_update();
+	/*manager_update();*/
 }
 
 void setup_workarea()
