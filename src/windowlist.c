@@ -108,3 +108,4 @@ void windowlist_stable_replace(struct windowlist *list,
 	free(replaced->wins);
 }
 
+/* vim: set ts=4 sw=4 noet: */

@@ -121,3 +121,5 @@ void manager_activate(int index, bool relative)
 
 	wrapper_change_active(all_windows.wins[target]);
 }
+
+/* vim: set ts=4 sw=4 noet: */

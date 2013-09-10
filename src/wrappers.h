@@ -12,3 +12,5 @@ void wrapper_change_active(xcb_window_t w);
 void wrapper_move_resize(xcb_window_t w, uint32_t extents[4]);
 
 #endif /* WRAPPERS_H */
+
+/* vim: set ts=4 sw=4 noet: */

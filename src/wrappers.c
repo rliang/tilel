@@ -124,3 +124,5 @@ void wrapper_move_resize(xcb_window_t w, uint32_t extents[4])
 			XCB_EWMH_MOVERESIZE_WINDOW_HEIGHT,
 			extents[0], extents[1], extents[2], extents[3]);
 }
+
+/* vim: set ts=4 sw=4 noet: */

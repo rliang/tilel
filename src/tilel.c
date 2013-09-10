@@ -145,3 +145,5 @@ int main(void)
 	run();
 	return EXIT_SUCCESS;
 }
+
+/* vim: set ts=4 sw=4 noet: */

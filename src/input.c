@@ -53,3 +53,5 @@ void input_parse()
 	int target = atoi(&buf[1]);
 	input_interpret(cmd, target);
 }
+
+/* vim: set ts=4 sw=4 noet: */

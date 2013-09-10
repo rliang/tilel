@@ -29,3 +29,5 @@ struct windowlist all_windows;
 void quit();
 
 #endif /* TILEL_H */
+
+/* vim: set ts=4 sw=4 noet: */

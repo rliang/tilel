@@ -15,3 +15,5 @@ void windowlist_filter(struct windowlist *list, bool (*allowed)(xcb_window_t));
 void windowlist_stable_replace(struct windowlist *list, struct windowlist *merged);
 
 #endif /* WINDOWLIST_H */
+
+/* vim: set ts=4 sw=4 noet: */

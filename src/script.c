@@ -70,3 +70,5 @@ void script()
 	script_read(file);
 	pclose(file);
 }
+
+/* vim: set ts=4 sw=4 noet: */
